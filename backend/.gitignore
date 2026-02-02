@@ -1,0 +1,28 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Data & Persistence
+faiss_db/
+*.faiss
+*.pkl
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
