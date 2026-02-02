@@ -24,6 +24,9 @@ GeoQuery AI is a sophisticated geospatial intelligence platform that combines:
 
 ## 🏗️ System Architecture
 
+![GeoQuery AI Architecture](./assets/architecture.png)
+*Complete system architecture showing the RAG pipeline, Google Earth Engine integration, and data flow*
+
 ### High-Level Data Flow
 
 ```
