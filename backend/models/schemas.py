@@ -79,6 +79,10 @@ class MetricsResponse(BaseModel):
             "Water bodies cover approximately 5.2% of the area."
         ]
     )
+    spatial_analysis: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Detailed spatial calculations from GeoPandas & Shapely"
+    )
     time_series_data: Optional[List[Dict[str, Any]]] = Field(
         None,
         description="Historical data for charting (e.g., monthly NDVI)",

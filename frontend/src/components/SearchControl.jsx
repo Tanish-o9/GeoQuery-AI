@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useMap } from 'react-leaflet';
+import { useMap as useLeafletMap } from 'react-leaflet';
+import { useMap as useGlobalMap } from '../context/MapContext';
 import axios from 'axios';
 
 const SearchControl = () => {
-    const map = useMap();
+    const map = useLeafletMap();
+    const { setSearchedLocationMarker } = useGlobalMap();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -31,10 +33,33 @@ const SearchControl = () => {
     };
 
     const handleSelect = (result) => {
-        const { lat, lon } = result;
+        const lat = parseFloat(result.lat);
+        const lon = parseFloat(result.lon);
         map.flyTo([lat, lon], 13);
         setResults([]);
         setQuery(result.display_name);
+
+        // Generate simulated realistic weather and temperature
+        const temp = Math.round(32 - Math.abs(lat) * 0.38 + (Math.sin(lon) * 3));
+        let condition = "🌤️ Partly Cloudy";
+        
+        if (lat > 45 || temp < 5) {
+            condition = "❄️ Light Snow";
+        } else if (temp > 28) {
+            condition = "☀️ Clear & Sunny";
+        } else if (temp < 15) {
+            condition = "🌫️ Overcast & Cool";
+        } else if (Math.round(lat + lon) % 2 === 0) {
+            condition = "🌧️ Light Rain";
+        }
+
+        setSearchedLocationMarker({
+            lat,
+            lon,
+            name: result.display_name,
+            temp,
+            condition
+        });
     };
 
     return (

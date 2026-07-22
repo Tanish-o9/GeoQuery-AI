@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # NGINX reverse proxy & Load Balancer ingress
+  webserver:
+    image: nginx:alpine
+    container_name: geoquery_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - geoquery_net
+
+  # React Frontend client
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: geoquery_frontend
+    environment:
+      - VITE_API_URL=http://localhost/api
+    expose:
+      - "5173"
+    networks:
+      - geoquery_net
+
+  # FastAPI Backend API server
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: geoquery_api
+    environment:
+      - DATABASE_URL=postgresql://geoquery_user:geoquery_pass@db:5432/geoquery_db
+      - REDIS_URL=redis://cache:6379/0
+      - EARTH_ENGINE_KEY_FILE=/app/secrets/ee_key.json
+    expose:
+      - "8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - cache
+    networks:
+      - geoquery_net
+
+  # PostgreSQL + PostGIS database
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: geoquery_postgis
+    environment:
+      - POSTGRES_DB=geoquery_db
+      - POSTGRES_USER=geoquery_user
+      - POSTGRES_PASSWORD=geoquery_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - geoquery_net
+
+  # Redis in-memory spatial cache
+  cache:
+    image: redis:7-alpine
+    container_name: geoquery_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - geoquery_net
+
+networks:
+  geoquery_net:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local

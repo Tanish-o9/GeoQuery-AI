@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import analyze, query
+from routers import analyze, query, chat, report, gis_dashboard, gis_ai, enterprise_routes, ai_routes, gis_platform, enterprise_platform
 from services.earth_engine import earth_engine_service
 from services.vector_store import vector_store_service
 from services.llm_service import llm_service
+from services.postgis_db import db_service
 import logging
 import os
 from dotenv import load_dotenv
@@ -40,6 +41,13 @@ app.add_middleware(
 async def startup_event():
     """Initialize services on startup"""
     logger.info("Starting GeoQuery AI API...")
+    
+    # Initialize PostGIS / SQLite Database
+    success = db_service.initialize()
+    if success:
+        logger.info("✓ Database Service initialized successfully")
+    else:
+        logger.warning("✗ Database Service initialization failed")
     
     # Initialize Google Earth Engine
     success = earth_engine_service.initialize_ee()
@@ -86,6 +94,14 @@ async def health_check():
 # Include routers
 app.include_router(analyze.router)
 app.include_router(query.router)
+app.include_router(chat.router)
+app.include_router(report.router)
+app.include_router(gis_dashboard.router)
+app.include_router(gis_ai.router)
+app.include_router(enterprise_routes.router)
+app.include_router(ai_routes.router)
+app.include_router(gis_platform.router)
+app.include_router(enterprise_platform.router)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,8 @@ import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 
 import AnalysisReport from './AnalysisReport';
+import DrawAnalyzePanel from './DrawAnalyzePanel';
+import AdvancedGisWidget from './AdvancedGisWidget';
 
 const Sidebar = () => {
     const {
@@ -22,7 +24,10 @@ const Sidebar = () => {
         setIsCompareMode,
         secondaryAOI,
         setSecondaryAnalysisResults,
-        secondaryAnalysisResults
+        secondaryAnalysisResults,
+        setIsDashboardOpen,
+        isCommandCenterOpen,
+        setIsCommandCenterOpen
     } = useMap();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [activeTab, setActiveTab] = useState('analyze'); // 'analyze' or 'query'
@@ -139,17 +144,25 @@ const Sidebar = () => {
                             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                                 GeoQuery AI
                             </h1>
-                            <button
-                                onClick={() => {
-                                    if (window.confirm("Clear all selection and history?")) {
-                                        window.location.reload(); // Quick way to reset all states
-                                        localStorage.clear();
-                                    }
-                                }}
-                                className="text-[10px] text-gray-500 hover:text-red-400 transition-colors uppercase tracking-widest font-bold"
-                            >
-                                Reset
-                            </button>
+                            <div className="flex flex-col items-end gap-1.5">
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm("Clear all selection and history?")) {
+                                            window.location.reload(); // Quick way to reset all states
+                                            localStorage.clear();
+                                        }
+                                    }}
+                                    className="text-[9px] text-gray-500 hover:text-red-400 transition-colors uppercase tracking-widest font-bold"
+                                >
+                                    Reset
+                                </button>
+                                <button
+                                    onClick={() => setIsCommandCenterOpen(true)}
+                                    className="text-[9px] text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-widest font-bold font-mono"
+                                >
+                                    🖥️ Cmd Center
+                                </button>
+                            </div>
                         </div>
                         <p className="text-sm text-gray-400">
                             Satellite-powered geospatial intelligence
@@ -340,17 +353,20 @@ const Sidebar = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setActiveTab('query')}
-                                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold rounded shadow-lg transform transition-all hover:scale-105"
+                                                    className="flex-1 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold rounded-xl shadow-lg transform transition-all hover:scale-105"
                                                 >
                                                     ✨ Ask AI
                                                 </button>
                                                 <button
-                                                    onClick={handleExportPDF}
-                                                    className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded shadow transition-all flex items-center justify-center gap-2"
+                                                    onClick={() => setIsDashboardOpen(true)}
+                                                    className="flex-1 px-3 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded-xl shadow border border-gray-700 transition-all flex items-center justify-center gap-1.5"
                                                 >
-                                                    📄 PDF
+                                                    📊 Stats
                                                 </button>
                                             </div>
+
+                                            {/* Advanced Draw & Analyze Section */}
+                                            <DrawAnalyzePanel analysisResults={analysisResults} />
                                         </div>
                                     </div>
                                 )}
@@ -377,6 +393,7 @@ const Sidebar = () => {
                                         </div>
                                     </div>
                                 )}
+                                <AdvancedGisWidget />
                             </div>
                         ) : (
                             <QueryPanel currentAoiId={analysisResults?.aoi_id} />

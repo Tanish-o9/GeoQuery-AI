@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, status
 from models.schemas import AOIAnalysisRequest, MetricsResponse, ErrorResponse
 from services.earth_engine import earth_engine_service
 from services.vector_store import vector_store_service
+from services.spatial_analyst import spatial_analyst
+from services.postgis_db import db_service
 import logging
 import uuid
 
@@ -138,13 +140,27 @@ async def analyze_aoi(request: AOIAnalysisRequest):
             "end": request.end_date
         }
         
+        # Calculate extended spatial metrics
+        logger.info("Performing GeoPandas and Shapely spatial calculation...")
+        spatial_analysis_results = spatial_analyst.analyze_geometry(request.geometry)
+        
+        # Save to database (PostGIS / SQLite fallback)
+        properties = {
+            "metrics": metrics,
+            "summaries": summaries,
+            "date_range": date_range,
+            "analysis": spatial_analysis_results
+        }
+        db_service.save_aoi(aoi_id, request.geometry, properties)
+        logger.info(f"Stored AOI {aoi_id} in relational database")
+        
         response = MetricsResponse(
             aoi_id=aoi_id,
             coordinates=request.geometry,
             date_range=date_range,
             metrics=metrics,
-
             summaries=summaries,
+            spatial_analysis=spatial_analysis_results,
             time_series_data=time_series_data
         )
         
